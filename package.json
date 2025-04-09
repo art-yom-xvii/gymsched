@@ -1,15 +1,15 @@
 {
-    "name": "004-complete-vue-mastery-2022",
-    "version": "0.0.0",
+    "name": "gymsched",
+    "version": "1.0.0",
     "private": true,
     "type": "module",
     "homepage": "https://art-yom-xvii.github.io/gymsched/",
     "scripts": {
         "dev": "vite",
         "build": "vite build",
+        "preview": "vite preview",
         "predeploy": "npm run build",
         "deploy": "gh-pages -d dist",
-        "preview": "vite preview",
         "lint": "eslint . --fix",
         "format": "prettier --write src/"
     },
