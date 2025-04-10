@@ -13,6 +13,18 @@
         "lint": "eslint . --fix",
         "format": "prettier --write src/"
     },
+    "browserslist": [
+        "defaults",
+        "last 4 iOS versions",
+        "Chrome 110",
+        "Chrome 111",
+        "Chrome 112",
+        "Chrome 113",
+        "Chrome 114",
+        "Chrome 115",
+        "Chrome 116"
+
+    ],
     "dependencies": {
         "@tailwindcss/vite": "^4.0.9",
         "axios": "^1.8.4",
