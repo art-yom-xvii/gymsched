@@ -1,6 +1,6 @@
 <template>
     <aside
-        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 text-white"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 text-white transition-transform duration-300"
         :class="{ '-translate-x-full': !visible, 'translate-x-0': visible }"
     >
         <nav class="text-center">

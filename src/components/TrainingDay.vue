@@ -7,21 +7,32 @@ const props = defineProps({
 
 defineEmits(['goBack']);
 
-const newExercise = ref('');
 const exercises = ref([]);
-let canEditExercises = ref(false);
+const newExercise = ref('');
+const dietGoals = ref([]);
+const newDiet = ref('');
+let canEdit = ref(false);
 
 const storageKey = ref('');
 
 onMounted(() => {
     storageKey.value = `exercises_${props.day}`;
 
-    const saved = localStorage.getItem(storageKey.value);
-    if (saved) {
+    const savedExercises = localStorage.getItem(storageKey.value);
+    if (savedExercises) {
         try {
-            exercises.value = JSON.parse(saved);
+            exercises.value = JSON.parse(savedExercises);
         } catch (e) {
-            console.error('Ошибка чтения localStorage:', e);
+            console.error('Ошибка чтения exercises из localStorage:', e);
+        }
+    }
+
+    const savedDietGoals = localStorage.getItem(`dietGoals_${props.day}`);
+    if (savedDietGoals) {
+        try {
+            dietGoals.value = JSON.parse(savedDietGoals);
+        } catch (e) {
+            console.error('Ошибка чтения diet из localStorage:', e);
         }
     }
 });
@@ -34,43 +45,62 @@ watch(
     { deep: true },
 );
 
+watch(
+    dietGoals,
+    (newVal) => {
+        localStorage.setItem(`dietGoals_${props.day}`, JSON.stringify(newVal));
+    },
+    { deep: true },
+);
+
 const editExercises = () => {
-    canEditExercises.value = !canEditExercises.value;
+    canEdit.value = !canEdit.value;
 };
 
-const addExercise = () => {
-    if (newExercise.value.trim() !== '') {
-        exercises.value.push(newExercise.value.trim());
-        newExercise.value = '';
+const addExerciseOrDietGoals = (
+    newExerciseOrDietGoals,
+    exerciseOrDietGoalsArray,
+) => {
+    if (newExerciseOrDietGoals.value.trim() !== '') {
+        exerciseOrDietGoalsArray.value.push(
+            newExerciseOrDietGoals.value.trim(),
+        );
+        newExerciseOrDietGoals.value = '';
     }
 };
 
+const addExercise = () => addExerciseOrDietGoals(newExercise, exercises);
+const addDietGoals = () => addExerciseOrDietGoals(newDiet, dietGoals);
+
 const removeExercise = (index) => {
     exercises.value.splice(index, 1);
+};
+
+const removeDietGoal = (index) => {
+    dietGoals.value.splice(index, 1);
 };
 </script>
 
 <template>
     <section class="space-y-6 p-4">
-        <div class="mr-2 flex items-center justify-between">
+        <div class="flex items-center justify-between">
             <h2 class="text-2xl font-bold text-gray-800">
                 {{ day }}'s Training
             </h2>
 
             <button
                 @click="editExercises"
-                class="text-2xl text-black hover:text-gray-500 focus:outline-none"
+                class="size-8 text-black hover:text-gray-500 focus:outline-none"
                 title="Edit Exercises"
             >
                 <!-- Если режим редактирования включён -->
-                <span v-if="canEditExercises"
+                <span v-if="canEdit"
                     ><svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
-                        class="size-6"
                     >
                         <path
                             stroke-linecap="round"
@@ -88,7 +118,6 @@ const removeExercise = (index) => {
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
                     stroke="currentColor"
-                    class="size-6"
                 >
                     <path
                         stroke-linecap="round"
@@ -99,55 +128,119 @@ const removeExercise = (index) => {
             </button>
         </div>
 
-        <!-- Упражнения -->
-        <div>
-            <h3 class="mb-2 text-xl font-semibold text-gray-700">Exercises</h3>
-            <ul class="space-y-2">
-                <span v-if="exercises.length === 0" class="text-gray-500">
-                    No exercises added yet.
-                </span>
-                <li
-                    v-for="(exercise, index) in exercises"
-                    :key="index"
-                    class="flex items-center justify-between gap-2 rounded-lg bg-white p-2 shadow"
-                >
-                    <!-- Показывать input в режиме редактирования -->
-                    <input
-                        v-if="canEditExercises"
-                        v-model="exercises[index]"
-                        type="text"
-                        class="flex-1 border-b border-gray-300 px-2 py-1 focus:border-orange-600 focus:outline-none"
-                    />
-
-                    <!-- Или просто текст -->
-                    <span v-else class="flex-1 px-2 text-gray-800">
-                        {{ exercise }}
+        <div class="flex flex-col gap-20">
+            <!-- Упражнения -->
+            <div>
+                <h3 class="mb-2 text-xl font-semibold text-gray-700">
+                    Exercises
+                </h3>
+                <ul class="space-y-2">
+                    <span v-if="exercises.length === 0" class="text-gray-500">
+                        No exercises added yet.
                     </span>
-
-                    <!-- Delete button -->
-                    <button
-                        v-show="canEditExercises"
-                        class="text-2xl text-red-800 hover:underline"
-                        @click="removeExercise(index)"
+                    <li
+                        v-for="(exercise, index) in exercises"
+                        :key="index"
+                        class="flex items-center justify-between gap-2 rounded-lg bg-white p-2 shadow"
                     >
-                        ×
-                    </button>
-                </li>
-            </ul>
+                        <!-- Показывать input в режиме редактирования -->
+                        <input
+                            v-if="canEdit"
+                            v-model="exercises[index]"
+                            type="text"
+                            class="min-h-8 flex-1 border-b border-gray-300 px-2 focus:border-orange-600/50 focus:outline-none"
+                        />
 
-            <div class="mt-3 flex gap-2">
-                <input
-                    v-model="newExercise"
-                    type="text"
-                    placeholder="e.g. Squats 3x12"
-                    class="flex-1 rounded-md border border-gray-400 p-2"
-                />
-                <button
-                    class="add-btn rounded-md bg-orange-600 px-4 py-2 text-white transition hover:bg-orange-700"
-                    @click="addExercise"
-                >
-                    Add
-                </button>
+                        <!-- Или просто текст -->
+                        <span
+                            v-else
+                            class="justify-centeritems-center min-h-8 flex-1 px-2 py-1 text-gray-800"
+                        >
+                            {{ exercise }}
+                        </span>
+
+                        <!-- Delete button -->
+                        <button
+                            v-show="canEdit"
+                            class="h-full w-8 text-xl text-red-800 hover:underline"
+                            @click="removeExercise(index)"
+                        >
+                            ×
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="mt-3 flex gap-2">
+                    <input
+                        v-model="newExercise"
+                        type="text"
+                        placeholder="e.g. Squats 3x12"
+                        class="flex-1 rounded-md border border-gray-400 p-2"
+                    />
+                    <button
+                        class="add-btn rounded-md bg-orange-600 px-4 py-2 text-white transition hover:bg-orange-700"
+                        @click="addExercise"
+                    >
+                        Add
+                    </button>
+                </div>
+            </div>
+
+            <!-- Диета -->
+            <div>
+                <h3 class="mb-2 text-xl font-semibold text-gray-700">
+                    Diet Goals
+                </h3>
+                <ul class="space-y-2">
+                    <span v-if="dietGoals.length === 0" class="text-gray-500">
+                        No diet goals added yet.
+                    </span>
+                    <li
+                        v-for="(dietItem, index) in dietGoals"
+                        :key="index"
+                        class="flex items-center justify-between gap-2 rounded-lg bg-white p-2 shadow"
+                    >
+                        <!-- Показывать input в режиме редактирования -->
+                        <input
+                            v-if="canEdit"
+                            v-model="dietGoals[index]"
+                            type="text"
+                            class="min-h-8 flex-1 border-b border-gray-300 px-2 focus:border-orange-600/50 focus:outline-none"
+                        />
+
+                        <!-- Или просто текст -->
+                        <span
+                            v-else
+                            class="justify-centeritems-center min-h-8 flex-1 px-2 py-1 text-gray-800"
+                        >
+                            {{ dietItem }}
+                        </span>
+
+                        <!-- Delete button -->
+                        <button
+                            v-show="canEdit"
+                            class="h-full w-8 text-xl text-red-800 hover:underline"
+                            @click="removeDietGoal(index)"
+                        >
+                            ×
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="mt-3 flex gap-2">
+                    <input
+                        v-model="newDiet"
+                        type="text"
+                        placeholder="e.g. Carbs 10g"
+                        class="flex-1 rounded-md border border-gray-400 p-2"
+                    />
+                    <button
+                        class="add-btn rounded-md bg-orange-600 px-4 py-2 text-white transition hover:bg-orange-700"
+                        @click="addDietGoals"
+                    >
+                        Add
+                    </button>
+                </div>
             </div>
         </div>
     </section>

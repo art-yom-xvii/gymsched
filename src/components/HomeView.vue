@@ -1,7 +1,15 @@
 <script setup>
 import { ref } from 'vue';
 
-const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const days = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+];
 const today = new Date().toLocaleString('en-US', { weekday: 'long' });
 const currentDay = ref(today);
 </script>

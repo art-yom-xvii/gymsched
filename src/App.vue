@@ -41,11 +41,6 @@ function goBack() {
             :visible="showSidebar"
             @goHome="goHome"
             @closeSidebar="toggleSidebar"
-            :class="{
-                'translate-x-0': visible,
-                '-translate-x-full': !visible,
-                'md:w-64 md:translate-x-0': false,
-            }"
         />
 
         <!-- Main Content -->
